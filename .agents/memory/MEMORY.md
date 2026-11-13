@@ -1,0 +1,1 @@
+- [Demo-data cleanup scope](demo-cleanup-scope.md) — remove only demo records; preserve real data, design, and functionality.
