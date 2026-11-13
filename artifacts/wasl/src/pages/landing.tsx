@@ -121,7 +121,7 @@ export default function Landing() {
         {services.isLoading ? <CardsSkeleton n={3} /> : services.error ? (
           <ErrorState error={services.error} onRetry={() => services.refetch()} />
         ) : (services.data ?? []).length === 0 ? (
-          <EmptyState title="لا توجد خدمات منشورة بعد" text="كن أول من يعرض مهارته في ." action={<Button asChild><Link href="/sign-up">انضم كمقدم خدمة</Link></Button>} />
+          <EmptyState title="لا توجد خدمات منشورة بعد" text="كن أول من يعرض مهارته  ." action={<Button asChild><Link href="/sign-up">انضم كمقدم خدمة</Link></Button>} />
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {(services.data ?? []).slice(0, 6).map((s) => <ServiceCard key={s.id} s={s} categories={cats.data} />)}
