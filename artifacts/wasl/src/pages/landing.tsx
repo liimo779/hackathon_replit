@@ -83,7 +83,6 @@ export default function Landing() {
           <div>
             <div className="text-xs font-bold text-clay">الأقسام</div>
           </div>
-          <Link href="/services" className="hidden text-sm font-semibold text-primary md:block">كل الخدمات</Link>
         </div>
         {cats.isLoading ? (
           <div className="grid gap-4 md:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-52 rounded-2xl" />)}</div>
