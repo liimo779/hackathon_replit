@@ -1,36 +1,584 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.1.0
-  description: API specification
+  version: 1.0.0
+  description: WASL Arabic service marketplace
 servers:
   - url: /api
-    description: Base API path
-tags:
-  - name: health
-    description: Health operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
-      tags: [health]
-      summary: Health check
-      description: Returns server health status
       responses:
-        "200":
+        '200':
           description: Healthy
           content:
             application/json:
-              schema:
-                $ref: "#/components/schemas/HealthStatus"
+              schema: { $ref: '#/components/schemas/HealthStatus' }
+  /me:
+    get:
+      operationId: getMe
+      responses:
+        '200':
+          description: Current application account or null before onboarding
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionInfo' }
+    post:
+      operationId: saveAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AccountInput' }
+      responses:
+        '200':
+          description: Account
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+  /categories:
+    get:
+      operationId: listCategories
+      responses:
+        '200':
+          description: Categories
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Category' } }
+    post:
+      operationId: saveCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CategoryInput' }
+      responses:
+        '200':
+          description: Category
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Category' }
+  /categories/{id}:
+    delete:
+      operationId: deleteCategory
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Deleted unused category }
+  /services:
+    get:
+      operationId: listServices
+      parameters:
+        - { name: search, in: query, schema: { type: string } }
+        - { name: categoryId, in: query, schema: { type: integer } }
+        - { name: city, in: query, schema: { type: string } }
+        - { name: district, in: query, schema: { type: string } }
+        - { name: sort, in: query, schema: { type: string, enum: [rating, price, newest] } }
+        - { name: providerId, in: query, schema: { type: string } }
+        - { name: mine, in: query, schema: { type: boolean } }
+      responses:
+        '200':
+          description: Services
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Service' } }
+    post:
+      operationId: createService
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ServiceInput' }
+      responses:
+        '201':
+          description: Service created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Service' }
+  /services/{id}:
+    get:
+      operationId: getService
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200':
+          description: Service
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Service' }
+    patch:
+      operationId: updateService
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ServiceInput' }
+      responses:
+        '200':
+          description: Updated service
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Service' }
+    delete:
+      operationId: deleteService
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '204': { description: Archived }
+  /providers:
+    get:
+      operationId: listProviders
+      responses:
+        '200':
+          description: Suggested providers
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Provider' } }
+  /providers/{id}:
+    get:
+      operationId: getProvider
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Provider profile, services and reviews
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProviderDetail' }
+  /provider/profile:
+    get:
+      operationId: getMyProviderProfile
+      responses:
+        '200':
+          description: Own profile
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Provider' }
+    put:
+      operationId: saveProviderProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProfileInput' }
+      responses:
+        '200':
+          description: Saved profile
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Provider' }
+  /orders:
+    get:
+      operationId: listOrders
+      responses:
+        '200':
+          description: Orders belonging to current user; all for admin
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Order' } }
+    post:
+      operationId: createOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OrderInput' }
+      responses:
+        '201':
+          description: Order created with 10 percent commission
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200':
+          description: Order
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+    patch:
+      operationId: updateOrderStatus
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OrderStatusInput' }
+      responses:
+        '200':
+          description: Updated order
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+  /orders/{id}/review:
+    post:
+      operationId: createReview
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReviewInput' }
+      responses:
+        '201':
+          description: Review created for completed order
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Review' }
+  /plans:
+    get:
+      operationId: listPlans
+      responses:
+        '200':
+          description: Monthly plans, simulated payment only
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Plan' } }
+  /subscriptions:
+    get:
+      operationId: listSubscriptions
+      responses:
+        '200':
+          description: Subscription history
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Subscription' } }
+    post:
+      operationId: subscribePlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SubscriptionInput' }
+      responses:
+        '201':
+          description: Simulated payment recorded and subscription activated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Subscription' }
+  /dashboard:
+    get:
+      operationId: getDashboard
+      responses:
+        '200':
+          description: Role specific real statistics
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Dashboard' }
+  /marketplace/stats:
+    get:
+      operationId: getMarketplaceStats
+      responses:
+        '200':
+          description: Public real marketplace counts
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MarketplaceStats' }
+  /admin/users:
+    get:
+      operationId: listAdminUsers
+      responses:
+        '200':
+          description: Users, admin only
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/User' } }
+  /admin/providers/{id}:
+    patch:
+      operationId: setProviderStatus
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProviderStatusInput' }
+      responses:
+        '200':
+          description: Provider activation status
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+  /storage/uploads/request-url:
+    post:
+      operationId: requestUploadUrl
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UploadInput' }
+      responses:
+        '200':
+          description: Presigned direct image upload
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UploadResult' }
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
-        status:
-          type: string
-      required:
-        - status
-
+        status: { type: string }
+    User:
+      type: object
+      required: [id, name, email, phone, city, district, role, active, isDemo]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string }
+        phone: { type: string }
+        city: { type: string }
+        district: { type: string }
+        role: { type: string, enum: [customer, provider, admin] }
+        active: { type: boolean }
+        isDemo: { type: boolean }
+    SessionInfo:
+      type: object
+      required: [authenticated, user]
+      properties:
+        authenticated: { type: boolean }
+        user:
+          anyOf:
+            - { $ref: '#/components/schemas/User' }
+            - { type: 'null' }
+    AccountInput:
+      type: object
+      required: [name, phone, city, district, role, termsAccepted]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 100 }
+        phone: { type: string, minLength: 9, maxLength: 20 }
+        city: { type: string, minLength: 2, maxLength: 100 }
+        district: { type: string, minLength: 2, maxLength: 100 }
+        role: { type: string, enum: [customer, provider] }
+        categoryId: { type: integer }
+        termsAccepted: { type: boolean }
+    Category:
+      type: object
+      required: [id, name, icon, subcategories, serviceCount]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        icon: { type: string }
+        subcategories: { type: array, items: { type: string } }
+        serviceCount: { type: integer }
+    CategoryInput:
+      type: object
+      required: [name, icon, subcategories]
+      properties:
+        id: { type: integer }
+        name: { type: string, minLength: 2, maxLength: 100 }
+        icon: { type: string, maxLength: 100 }
+        subcategories: { type: array, maxItems: 30, items: { type: string, maxLength: 100 } }
+    Provider:
+      type: object
+      required: [id, name, city, district, bio, categoryId, skills, experience, coverage, avatar, portfolio, rating, reviewCount, views, professional, isDemo, active]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        city: { type: string }
+        district: { type: string }
+        bio: { type: string }
+        categoryId: { type: integer }
+        skills: { type: array, items: { type: string } }
+        experience: { type: integer }
+        coverage: { type: array, items: { type: string } }
+        avatar: { type: string }
+        portfolio: { type: array, items: { type: string } }
+        rating: { type: number }
+        reviewCount: { type: integer }
+        views: { type: integer }
+        professional: { type: boolean }
+        isDemo: { type: boolean }
+        active: { type: boolean }
+    ProfileInput:
+      type: object
+      required: [bio, categoryId, skills, experience, coverage, avatar, portfolio]
+      properties:
+        bio: { type: string, maxLength: 3000 }
+        categoryId: { type: integer }
+        skills: { type: array, maxItems: 30, items: { type: string, maxLength: 100 } }
+        experience: { type: integer, minimum: 0, maximum: 80 }
+        coverage: { type: array, maxItems: 40, items: { type: string, maxLength: 100 } }
+        avatar: { type: string, maxLength: 2000 }
+        portfolio: { type: array, maxItems: 20, items: { type: string, maxLength: 2000 } }
+    Service:
+      type: object
+      required: [id, providerId, providerName, title, description, categoryId, price, duration, delivery, images, city, district, rating, reviewCount, professional, isDemo]
+      properties:
+        id: { type: integer }
+        providerId: { type: string }
+        providerName: { type: string }
+        title: { type: string }
+        description: { type: string }
+        categoryId: { type: integer }
+        price: { type: number }
+        duration: { type: string }
+        delivery: { type: string, enum: [customer_location, provider_location, remote] }
+        images: { type: array, items: { type: string } }
+        city: { type: string }
+        district: { type: string }
+        rating: { type: number }
+        reviewCount: { type: integer }
+        professional: { type: boolean }
+        isDemo: { type: boolean }
+    ServiceInput:
+      type: object
+      required: [title, description, categoryId, price, duration, delivery, images]
+      properties:
+        title: { type: string, minLength: 3, maxLength: 160 }
+        description: { type: string, minLength: 10, maxLength: 5000 }
+        categoryId: { type: integer }
+        price: { type: number, minimum: 1, maximum: 100000 }
+        duration: { type: string, minLength: 1, maxLength: 100 }
+        delivery: { type: string, enum: [customer_location, provider_location, remote] }
+        images: { type: array, maxItems: 8, items: { type: string, maxLength: 2000 } }
+    ProviderDetail:
+      type: object
+      required: [provider, services, reviews]
+      properties:
+        provider: { $ref: '#/components/schemas/Provider' }
+        services: { type: array, items: { $ref: '#/components/schemas/Service' } }
+        reviews: { type: array, items: { $ref: '#/components/schemas/Review' } }
+    Order:
+      type: object
+      required: [id, serviceId, serviceTitle, customerId, customerName, providerId, providerName, description, scheduledAt, location, price, commission, total, status, createdAt, reviewed, isDemo]
+      properties:
+        id: { type: integer }
+        serviceId: { type: integer }
+        serviceTitle: { type: string }
+        customerId: { type: string }
+        customerName: { type: string }
+        providerId: { type: string }
+        providerName: { type: string }
+        description: { type: string }
+        scheduledAt: { type: string }
+        location: { type: string }
+        price: { type: number }
+        commission: { type: number }
+        total: { type: number }
+        status: { type: string, enum: [new, accepted, in_progress, completed, cancelled] }
+        createdAt: { type: string }
+        reviewed: { type: boolean }
+        isDemo: { type: boolean }
+    OrderInput:
+      type: object
+      required: [serviceId, description, location]
+      properties:
+        serviceId: { type: integer }
+        description: { type: string, minLength: 5, maxLength: 3000 }
+        scheduledAt: { type: string, maxLength: 100 }
+        location: { type: string, maxLength: 500 }
+    OrderStatusInput:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [accepted, in_progress, completed, cancelled] }
+    Review:
+      type: object
+      required: [id, orderId, customerName, rating, comment, createdAt]
+      properties:
+        id: { type: integer }
+        orderId: { type: integer }
+        customerName: { type: string }
+        rating: { type: integer }
+        comment: { type: string }
+        createdAt: { type: string }
+    ReviewInput:
+      type: object
+      required: [rating, comment]
+      properties:
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string, minLength: 3, maxLength: 2000 }
+    Plan:
+      type: object
+      required: [id, name, price, serviceLimit, features]
+      properties:
+        id: { type: string, enum: [basic, professional] }
+        name: { type: string }
+        price: { type: number }
+        serviceLimit: { type: integer }
+        features: { type: array, items: { type: string } }
+    SubscriptionInput:
+      type: object
+      required: [plan, simulatePayment]
+      properties:
+        plan: { type: string, enum: [basic, professional] }
+        simulatePayment: { type: boolean }
+    Subscription:
+      type: object
+      required: [id, providerId, plan, price, status, startsAt, endsAt, simulated]
+      properties:
+        id: { type: integer }
+        providerId: { type: string }
+        plan: { type: string, enum: [basic, professional] }
+        price: { type: number }
+        status: { type: string }
+        startsAt: { type: string }
+        endsAt: { type: string }
+        simulated: { type: boolean }
+    Dashboard:
+      type: object
+      required: [role, serviceCount, newOrders, inProgressOrders, completedOrders, views, rating, totalOrders, totalValue, commissionTotal, customers, providers, activeSubscriptions, categoryDistribution, recentOrders, subscription]
+      properties:
+        role: { type: string }
+        serviceCount: { type: integer }
+        newOrders: { type: integer }
+        inProgressOrders: { type: integer }
+        completedOrders: { type: integer }
+        views: { type: integer }
+        rating: { type: number }
+        totalOrders: { type: integer }
+        totalValue: { type: number }
+        commissionTotal: { type: number }
+        customers: { type: integer }
+        providers: { type: integer }
+        activeSubscriptions: { type: integer }
+        categoryDistribution: { type: array, items: { $ref: '#/components/schemas/CategoryCount' } }
+        recentOrders: { type: array, items: { $ref: '#/components/schemas/Order' } }
+        subscription:
+          anyOf:
+            - { $ref: '#/components/schemas/Subscription' }
+            - { type: 'null' }
+    CategoryCount:
+      type: object
+      required: [name, count]
+      properties:
+        name: { type: string }
+        count: { type: integer }
+    MarketplaceStats:
+      type: object
+      required: [providers, services, completedOrders, reviews, demo]
+      properties:
+        providers: { type: integer }
+        services: { type: integer }
+        completedOrders: { type: integer }
+        reviews: { type: integer }
+        demo: { type: boolean }
+    ProviderStatusInput:
+      type: object
+      required: [active]
+      properties:
+        active: { type: boolean }
+    UploadInput:
+      type: object
+      required: [name, size, contentType]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        size: { type: integer, minimum: 1, maximum: 10485760 }
+        contentType: { type: string, enum: [image/jpeg, image/png, image/webp] }
+    UploadResult:
+      type: object
+      required: [uploadURL, objectPath]
+      properties:
+        uploadURL: { type: string }
+        objectPath: { type: string }
