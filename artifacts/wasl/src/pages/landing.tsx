@@ -82,7 +82,6 @@ export default function Landing() {
         <div className="mb-8 flex items-end justify-between">
           <div>
             <div className="text-xs font-bold text-clay">الأقسام</div>
-            <h2 className="mt-1 text-3xl font-extrabold">من باب البيت إلى شاشة الحاسب</h2>
           </div>
           <Link href="/services" className="hidden text-sm font-semibold text-primary md:block">كل الخدمات</Link>
         </div>
