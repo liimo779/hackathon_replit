@@ -4,7 +4,7 @@ import { CheckCircle2 } from "lucide-react";
 import { Logo } from "@/components/common";
 import { basePath } from "@/lib/format";
 
-function AuthFrame({ children, title, text }: { children: React.ReactNode; title: string; text: string }) {
+function AuthFrame({ children, title, text }: { children: React.ReactNode; title: string; text?: string }) {
   return (
     <div className="grid min-h-[100dvh] lg:grid-cols-[1fr_1.1fr]">
       <div className="flex flex-col items-center justify-center px-4 py-10">
@@ -16,7 +16,7 @@ function AuthFrame({ children, title, text }: { children: React.ReactNode; title
         <Link href="/" className="relative"><Logo light size="lg" /></Link>
         <div className="relative mt-auto">
           <h2 className="font-display text-5xl font-black leading-tight">{title}</h2>
-          <p className="mt-4 max-w-md leading-loose text-sidebar-foreground/70">{text}</p>
+          {text && <p className="mt-4 max-w-md leading-loose text-sidebar-foreground/70">{text}</p>}
           <ul className="mt-8 space-y-3 text-sm">
             {["حساب واحد بدور ثابت: عميل أو مقدم خدمة", "أسعار ورسوم واضحة قبل كل طلب", "تقييمات من طلبات مكتملة فقط"].map((t) => (
               <li key={t} className="flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-saffron" />{t}</li>
@@ -32,7 +32,7 @@ function AuthFrame({ children, title, text }: { children: React.ReactNode; title
 
 export function SignInPage() {
   return (
-    <AuthFrame title="أهلًا بعودتك." text="جيرانك وأصحاب المهارات بانتظارك.">
+    <AuthFrame title="أهلًا بعودتك.">
       <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} fallbackRedirectUrl={`${basePath}/dashboard`} />
     </AuthFrame>
   );
