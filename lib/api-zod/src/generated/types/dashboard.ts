@@ -26,4 +26,5 @@ export interface Dashboard {
   categoryDistribution: CategoryCount[];
   recentOrders: Order[];
   subscription: Subscription | null;
+  pointsBalance: number;
 }

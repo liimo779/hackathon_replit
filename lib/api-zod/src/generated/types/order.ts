@@ -18,6 +18,10 @@ export interface Order {
   description: string;
   scheduledAt: string;
   location: string;
+  originalPrice: number;
+  discount: number;
+  /** @nullable */
+  couponCode: string | null;
   price: number;
   commission: number;
   total: number;
@@ -25,4 +29,5 @@ export interface Order {
   createdAt: string;
   reviewed: boolean;
   isDemo: boolean;
+  pointsEarned: number;
 }

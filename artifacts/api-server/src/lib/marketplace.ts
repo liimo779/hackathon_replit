@@ -1,4 +1,4 @@
-import { db, users, profiles, categories, services, subscriptions, orders, reviews, type WaslUser } from "@workspace/db";
+import { db, users, profiles, categories, services, subscriptions, orders, reviews, pointsTransactions, type WaslUser } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 
 export const plans = [
@@ -21,13 +21,20 @@ export function subscriptionView(s: typeof subscriptions.$inferSelect) {
     startsAt: s.startsAt.toISOString(), endsAt: s.endsAt.toISOString(), simulated: s.simulated };
 }
 export async function snapshot() {
-  const [allUsers, allProfiles, allCategories, allServices, allSubscriptions, allOrders, allReviews] = await Promise.all([
+  const [allUsers, allProfiles, allCategories, allServices, allSubscriptions, allOrders, allReviews, allPointsTransactions] = await Promise.all([
     db.select().from(users), db.select().from(profiles), db.select().from(categories),
     db.select().from(services).orderBy(desc(services.id)),
     db.select().from(subscriptions).orderBy(desc(subscriptions.id)),
     db.select().from(orders).orderBy(desc(orders.id)), db.select().from(reviews).orderBy(desc(reviews.id)),
+    db.select().from(pointsTransactions),
   ]);
   const userMap = new Map(allUsers.map(u => [u.id, u]));
+  const pointsByOrder = new Map<number, number>();
+  for (const transaction of allPointsTransactions) {
+    if (transaction.orderId !== null) {
+      pointsByOrder.set(transaction.orderId, (pointsByOrder.get(transaction.orderId) ?? 0) + transaction.points);
+    }
+  }
   const activeSub = (id: string) => allSubscriptions.find(s => s.providerId === id && s.status === "active" && s.endsAt.getTime() > Date.now());
   const ratings = (id: string) => {
     const list = allReviews.filter(r => r.providerId === id);
@@ -51,8 +58,12 @@ export async function snapshot() {
     id: o.id, serviceId: o.serviceId, serviceTitle: o.serviceTitle, customerId: o.customerId,
     customerName: userMap.get(o.customerId)?.name ?? "", providerId: o.providerId, providerName: userMap.get(o.providerId)?.name ?? "",
     description: o.description, scheduledAt: o.scheduledAt, location: o.location,
+    originalPrice: (o.originalPriceHalalas ?? o.priceHalalas) / 100,
+    discount: o.discountHalalas / 100,
+    couponCode: o.couponCode,
     price: o.priceHalalas / 100, commission: o.commissionHalalas / 100, total: o.totalHalalas / 100,
     status: o.status, createdAt: o.createdAt.toISOString(), reviewed: allReviews.some(r => r.orderId === o.id),
+    pointsEarned: pointsByOrder.get(o.id) ?? 0,
     isDemo: Boolean(userMap.get(o.providerId)?.isDemo || userMap.get(o.customerId)?.isDemo),
   });
   const reviewView = (r: typeof reviews.$inferSelect) => ({

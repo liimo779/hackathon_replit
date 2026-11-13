@@ -17,4 +17,9 @@ export interface OrderInput {
   scheduledAt?: string;
   /** @maxLength 500 */
   location: string;
+  /**
+     * @minLength 1
+     * @maxLength 40
+     */
+  couponCode?: string;
 }

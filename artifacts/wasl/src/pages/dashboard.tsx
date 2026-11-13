@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Link } from "wouter";
-import { ClipboardList, Hourglass, CheckCircle2, Eye, Star, Briefcase, Wallet, Users, CreditCard, Percent, ArrowLeft, Circle, Search } from "lucide-react";
+import { ClipboardList, Hourglass, CheckCircle2, Eye, Star, Briefcase, Wallet, Users, CreditCard, Percent, ArrowLeft, Circle, Search, Gift } from "lucide-react";
 import { useGetDashboard, useGetMyProviderProfile, useListOrders, type Dashboard as D, type Order, type User } from "@workspace/api-client-react";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ function DashboardInner({ user }: { user: User }) {
         actions={user.role === "customer" ? <Button asChild><Link href="/services" data-testid="button-new-order"><Search className="h-4 w-4" /> اطلب خدمة</Link></Button> : user.role === "admin" ? <Button asChild><Link href="/admin">إدارة المنصة</Link></Button> : undefined} />
       {user.role === "provider" && <ProviderSetup d={d} />}
       {user.role === "admin" ? <AdminStats d={d} /> : user.role === "provider" ? <ProviderStats d={d} /> : <CustomerStats d={d} />}
+      {user.role === "customer" && <RewardsSummary balance={d.pointsBalance} />}
       {user.role === "provider" && <CustomersTable />}
       <RecentOrders orders={d.recentOrders} />
     </>
@@ -76,6 +77,18 @@ function CustomerStats({ d }: { d: D }) {
       <StatCard label="قيد التنفيذ" value={num(d.inProgressOrders)} icon={Briefcase} tone="clay" />
       <StatCard label="مكتملة" value={num(d.completedOrders)} icon={CheckCircle2} tone="success" hint={`إجمالي الإنفاق ${sar(d.totalValue)}`} />
     </div>
+  );
+}
+
+function RewardsSummary({ balance }: { balance: number }) {
+  return (
+    <Link href="/rewards" className="mt-4 flex items-center justify-between gap-4 rounded-2xl border border-saffron/40 bg-accent/35 p-5 transition-colors hover:bg-accent/60" data-testid="link-rewards-summary">
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><Gift className="h-5 w-5" /></div>
+        <div><div className="font-bold">نقاط وَصل</div><div className="text-xs text-muted-foreground">رصيدك الحالي: {num(balance)} نقطة</div></div>
+      </div>
+      <ArrowLeft className="h-4 w-4 text-primary" />
+    </Link>
   );
 }
 

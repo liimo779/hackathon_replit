@@ -6,6 +6,7 @@ import orders from "./orders";
 import billing from "./billing";
 import admin from "./admin";
 import storage from "./storage";
+import rewards from "./rewards";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(orders);
 router.use(billing);
 router.use(admin);
 router.use(storage);
+router.use(rewards);
 
 export default router;

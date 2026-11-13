@@ -23,6 +23,7 @@ import ProviderProfile from "@/pages/provider-profile";
 import Subscriptions from "@/pages/subscriptions";
 import AdminPage from "@/pages/admin";
 import AccountPage from "@/pages/account";
+import RewardsPage from "@/pages/rewards";
 import Terms from "@/pages/terms";
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } });
@@ -144,6 +145,7 @@ function Routes() {
         <Route path="/sign-up/*?" component={SignUpPage} />
         <Route path="/onboarding" component={p(Onboarding)} />
         <Route path="/dashboard" component={p(DashboardPage)} />
+        <Route path="/rewards" component={p(RewardsPage)} />
         <Route path="/orders" component={p(OrdersPage)} />
         <Route path="/orders/:id" component={p(OrderDetail)} />
         <Route path="/provider/services" component={p(ProviderServices)} />

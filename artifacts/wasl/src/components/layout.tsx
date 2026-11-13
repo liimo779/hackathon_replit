@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import { useClerk, Show } from "@clerk/react";
 import {
-  LayoutDashboard, ClipboardList, Search, Briefcase, UserCog, CreditCard, ShieldCheck, Settings, LogOut, Menu, X, FileText,
+  LayoutDashboard, ClipboardList, Search, Briefcase, UserCog, CreditCard, ShieldCheck, Settings, LogOut, Menu, X, FileText, Gift,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -119,7 +119,14 @@ function navFor(role?: string): NavItem[] {
       { href: "/services", label: "السوق", icon: Search },
       { href: "/account", label: "الحساب", icon: Settings },
     ];
-  return [...common, { href: "/services", label: "اطلب خدمة", icon: Search }, { href: "/account", label: "الحساب", icon: Settings }];
+  if (role === "customer")
+    return [
+      ...common,
+      { href: "/rewards", label: "نقاط وَصل", icon: Gift },
+      { href: "/services", label: "اطلب خدمة", icon: Search },
+      { href: "/account", label: "الحساب", icon: Settings },
+    ];
+  return [...common, { href: "/services", label: "السوق", icon: Search }, { href: "/account", label: "الحساب", icon: Settings }];
 }
 
 export function AppShell({ children }: { children: ReactNode }) {

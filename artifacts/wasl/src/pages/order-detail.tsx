@@ -3,7 +3,7 @@ import { Link, useParams } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Star, Check, CalendarClock, MapPin } from "lucide-react";
 import {
-  useGetOrder, getGetOrderQueryKey, useUpdateOrderStatus, useCreateReview, getListOrdersQueryKey, getGetDashboardQueryKey,
+  useGetOrder, getGetOrderQueryKey, useUpdateOrderStatus, useCreateReview, getListOrdersQueryKey, getGetDashboardQueryKey, getGetRewardsQueryKey,
   type Order, type OrderStatusInputStatus, type User,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
@@ -69,13 +69,20 @@ function Inner({ user }: { user: User }) {
         </div>
         <div className="space-y-4">
           <div className="space-y-2 rounded-2xl border bg-card p-6 text-sm">
-            <div className="flex justify-between"><span className="text-muted-foreground">سعر الخدمة</span><span className="num">{sar(o.price)}</span></div>
+            {o.discount > 0 && <div className="flex justify-between"><span className="text-muted-foreground">السعر قبل الخصم</span><span className="num">{sar(o.originalPrice)}</span></div>}
+            {o.discount > 0 && <div className="flex justify-between text-success"><span>خصم القسيمة {o.couponCode ? `(${o.couponCode})` : ""}</span><span className="num">−{sar(o.discount)}</span></div>}
+            <div className="flex justify-between"><span className="text-muted-foreground">{o.discount > 0 ? "السعر بعد الخصم" : "سعر الخدمة"}</span><span className="num">{sar(o.price)}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">رسوم المنصة</span><span className="num">{sar(o.commission)}</span></div>
             <div className="flex justify-between border-t border-dashed pt-2 text-base font-bold"><span>الإجمالي</span><span className="num text-primary">{sar(o.total)}</span></div>
           </div>
           <Actions o={o} user={user} />
         </div>
       </div>
+      {user.role === "customer" && o.customerId === user.id && o.pointsEarned > 0 && (
+        <div className="mt-6 rounded-xl border border-success/30 bg-success/10 p-4 text-sm text-success">
+          حصلت على {o.pointsEarned} نقطة من هذا الطلب.
+        </div>
+      )}
       {user.role === "customer" && o.customerId === user.id && o.status === "completed" && !o.reviewed && <ReviewForm o={o} />}
       {o.reviewed && <div className="mt-6 flex items-center gap-2 rounded-xl bg-success/10 p-4 text-sm text-success"><Check className="h-4 w-4" /> تم تقييم هذا الطلب. شكرًا لك.</div>}
     </>
@@ -108,7 +115,10 @@ function Actions({ o, user }: { o: Order; user: User }) {
         qc.setQueryData(getGetOrderQueryKey(o.id), upd);
         qc.invalidateQueries({ queryKey: getListOrdersQueryKey() });
         qc.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
-        toast({ title: "تم تحديث الحالة", description: statusLabel[upd.status] });
+        toast({
+          title: "تم تحديث الحالة",
+          description: pending === "completed" ? "اكتمل الطلب، وحصل العميل على ١٠ نقاط." : statusLabel[upd.status],
+        });
         setPending(null);
       },
       onError: (e) => { setErr(errMsg(e)); setPending(null); },
@@ -153,9 +163,11 @@ function ReviewForm({ o }: { o: Order }) {
     setErr(null);
     m.mutate({ id: o.id, data: { rating, comment: comment.trim() } }, {
       onSuccess: () => {
-        qc.setQueryData(getGetOrderQueryKey(o.id), { ...o, reviewed: true });
+        qc.setQueryData(getGetOrderQueryKey(o.id), { ...o, reviewed: true, pointsEarned: o.pointsEarned + 5 });
         qc.invalidateQueries({ queryKey: getListOrdersQueryKey() });
-        toast({ title: "شكرًا لتقييمك" });
+        qc.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
+        qc.invalidateQueries({ queryKey: getGetRewardsQueryKey() });
+        toast({ title: "شكرًا لتقييمك، حصلت على ٥ نقاط" });
       },
       onError: (e) => setErr(errMsg(e)),
     });

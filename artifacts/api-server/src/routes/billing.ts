@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, users, subscriptions, services, payments } from "@workspace/db";
+import { db, users, subscriptions, services, payments, customerPoints } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import * as V from "@workspace/api-zod";
 import { plans, assert, snapshot, subscriptionView } from "../lib/marketplace";
@@ -35,6 +35,9 @@ router.post("/subscriptions", requireAccount, requireRole("provider"), async (re
 });
 router.get("/dashboard", requireAccount, async (_req, res): Promise<void> => {
   const u = account(res), s = await snapshot();
+  const [wallet] = u.role === "customer"
+    ? await db.select().from(customerPoints).where(eq(customerPoints.customerId, u.id))
+    : [];
   const os = s.allOrders.filter(o => u.role === "admin" || (u.role === "provider" ? o.providerId === u.id : o.customerId === u.id));
   const completed = os.filter(o => o.status === "completed");
   const myServices = u.role === "admin" ? s.published : s.allServices.filter(r => r.providerId === u.id && !r.archived);
@@ -50,6 +53,7 @@ router.get("/dashboard", requireAccount, async (_req, res): Promise<void> => {
     activeSubscriptions: u.role === "admin" ? s.allUsers.filter(u => s.activeSub(u.id)).length : 0,
     categoryDistribution: u.role === "admin" ? s.allCategories.map(c => ({ name: c.name, count: s.allProfiles.filter(p => p.categoryId === c.id).length })) : [],
     recentOrders: os.slice(0, 6).map(s.orderView), subscription: s.activeSub(u.id) ? subscriptionView(s.activeSub(u.id)!) : null,
+    pointsBalance: wallet?.balance ?? 0,
   }));
 });
 export default router;

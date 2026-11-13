@@ -234,6 +234,29 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Review' }
+  /rewards:
+    get:
+      operationId: getRewards
+      responses:
+        '200':
+          description: Customer points, coupons, and points history
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Rewards' }
+  /rewards/redeem:
+    post:
+      operationId: redeemReward
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RewardRedemptionInput' }
+      responses:
+        '201':
+          description: Coupon issued and 100 points redeemed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RewardCoupon' }
   /plans:
     get:
       operationId: listPlans
@@ -451,7 +474,7 @@ components:
         reviews: { type: array, items: { $ref: '#/components/schemas/Review' } }
     Order:
       type: object
-      required: [id, serviceId, serviceTitle, customerId, customerName, providerId, providerName, description, scheduledAt, location, price, commission, total, status, createdAt, reviewed, isDemo]
+      required: [id, serviceId, serviceTitle, customerId, customerName, providerId, providerName, description, scheduledAt, location, originalPrice, discount, couponCode, price, commission, total, status, createdAt, reviewed, isDemo, pointsEarned]
       properties:
         id: { type: integer }
         serviceId: { type: integer }
@@ -463,6 +486,9 @@ components:
         description: { type: string }
         scheduledAt: { type: string }
         location: { type: string }
+        originalPrice: { type: number }
+        discount: { type: number }
+        couponCode: { type: ["string", "null"] }
         price: { type: number }
         commission: { type: number }
         total: { type: number }
@@ -470,6 +496,7 @@ components:
         createdAt: { type: string }
         reviewed: { type: boolean }
         isDemo: { type: boolean }
+        pointsEarned: { type: integer }
     OrderInput:
       type: object
       required: [serviceId, description, location]
@@ -478,6 +505,7 @@ components:
         description: { type: string, minLength: 5, maxLength: 3000 }
         scheduledAt: { type: string, maxLength: 100 }
         location: { type: string, maxLength: 500 }
+        couponCode: { type: string, minLength: 1, maxLength: 40 }
     OrderStatusInput:
       type: object
       required: [status]
@@ -499,6 +527,40 @@ components:
       properties:
         rating: { type: integer, minimum: 1, maximum: 5 }
         comment: { type: string, minLength: 3, maxLength: 2000 }
+    Rewards:
+      type: object
+      required: [balance, pointsToNextReward, coupons, history]
+      properties:
+        balance: { type: integer }
+        pointsToNextReward: { type: integer }
+        coupons: { type: array, items: { $ref: '#/components/schemas/RewardCoupon' } }
+        history: { type: array, items: { $ref: '#/components/schemas/PointsTransaction' } }
+    RewardCoupon:
+      type: object
+      required: [id, code, discountPercent, createdAt, expiresAt, status, redeemedOrderId]
+      properties:
+        id: { type: integer }
+        code: { type: string }
+        discountPercent: { type: integer }
+        createdAt: { type: string }
+        expiresAt: { type: string }
+        status: { type: string, enum: [available, used, expired] }
+        redeemedOrderId: { type: ["integer", "null"] }
+    PointsTransaction:
+      type: object
+      required: [id, type, reason, points, orderId, couponCode, createdAt]
+      properties:
+        id: { type: integer }
+        type: { type: string, enum: [earned, redeemed] }
+        reason: { type: string, enum: [order_completed, review_submitted, reward_redeemed] }
+        points: { type: integer }
+        orderId: { type: ["integer", "null"] }
+        couponCode: { type: ["string", "null"] }
+        createdAt: { type: string }
+    RewardRedemptionInput:
+      type: object
+      additionalProperties: false
+      properties: {}
     Plan:
       type: object
       required: [id, name, price, serviceLimit, features]
@@ -528,7 +590,7 @@ components:
         simulated: { type: boolean }
     Dashboard:
       type: object
-      required: [role, serviceCount, newOrders, inProgressOrders, completedOrders, views, rating, totalOrders, totalValue, commissionTotal, customers, providers, activeSubscriptions, categoryDistribution, recentOrders, subscription]
+      required: [role, serviceCount, newOrders, inProgressOrders, completedOrders, views, rating, totalOrders, totalValue, commissionTotal, customers, providers, activeSubscriptions, categoryDistribution, recentOrders, subscription, pointsBalance]
       properties:
         role: { type: string }
         serviceCount: { type: integer }
@@ -549,6 +611,7 @@ components:
           anyOf:
             - { $ref: '#/components/schemas/Subscription' }
             - { type: 'null' }
+        pointsBalance: { type: integer }
     CategoryCount:
       type: object
       required: [name, count]

@@ -427,13 +427,17 @@ export const ListOrdersResponseItem = zod.object({
   "description": zod.string(),
   "scheduledAt": zod.string(),
   "location": zod.string(),
+  "originalPrice": zod.number(),
+  "discount": zod.number(),
+  "couponCode": zod.string().nullable(),
   "price": zod.number(),
   "commission": zod.number(),
   "total": zod.number(),
   "status": zod.enum(['new', 'accepted', 'in_progress', 'completed', 'cancelled']),
   "createdAt": zod.string(),
   "reviewed": zod.boolean(),
-  "isDemo": zod.boolean()
+  "isDemo": zod.boolean(),
+  "pointsEarned": zod.number().int()
 })
 export const ListOrdersResponse = zod.array(ListOrdersResponseItem)
 
@@ -445,13 +449,16 @@ export const createOrderBodyScheduledAtMax = 100;
 
 export const createOrderBodyLocationMax = 500;
 
+export const createOrderBodyCouponCodeMax = 40;
+
 
 
 export const CreateOrderBody = zod.object({
   "serviceId": zod.number().int(),
   "description": zod.string().min(createOrderBodyDescriptionMin).max(createOrderBodyDescriptionMax),
   "scheduledAt": zod.string().max(createOrderBodyScheduledAtMax).optional(),
-  "location": zod.string().max(createOrderBodyLocationMax)
+  "location": zod.string().max(createOrderBodyLocationMax),
+  "couponCode": zod.string().min(1).max(createOrderBodyCouponCodeMax).optional()
 })
 
 export const CreateOrderResponse = zod.object({
@@ -465,13 +472,17 @@ export const CreateOrderResponse = zod.object({
   "description": zod.string(),
   "scheduledAt": zod.string(),
   "location": zod.string(),
+  "originalPrice": zod.number(),
+  "discount": zod.number(),
+  "couponCode": zod.string().nullable(),
   "price": zod.number(),
   "commission": zod.number(),
   "total": zod.number(),
   "status": zod.enum(['new', 'accepted', 'in_progress', 'completed', 'cancelled']),
   "createdAt": zod.string(),
   "reviewed": zod.boolean(),
-  "isDemo": zod.boolean()
+  "isDemo": zod.boolean(),
+  "pointsEarned": zod.number().int()
 })
 
 
@@ -490,13 +501,17 @@ export const GetOrderResponse = zod.object({
   "description": zod.string(),
   "scheduledAt": zod.string(),
   "location": zod.string(),
+  "originalPrice": zod.number(),
+  "discount": zod.number(),
+  "couponCode": zod.string().nullable(),
   "price": zod.number(),
   "commission": zod.number(),
   "total": zod.number(),
   "status": zod.enum(['new', 'accepted', 'in_progress', 'completed', 'cancelled']),
   "createdAt": zod.string(),
   "reviewed": zod.boolean(),
-  "isDemo": zod.boolean()
+  "isDemo": zod.boolean(),
+  "pointsEarned": zod.number().int()
 })
 
 
@@ -519,13 +534,17 @@ export const UpdateOrderStatusResponse = zod.object({
   "description": zod.string(),
   "scheduledAt": zod.string(),
   "location": zod.string(),
+  "originalPrice": zod.number(),
+  "discount": zod.number(),
+  "couponCode": zod.string().nullable(),
   "price": zod.number(),
   "commission": zod.number(),
   "total": zod.number(),
   "status": zod.enum(['new', 'accepted', 'in_progress', 'completed', 'cancelled']),
   "createdAt": zod.string(),
   "reviewed": zod.boolean(),
-  "isDemo": zod.boolean()
+  "isDemo": zod.boolean(),
+  "pointsEarned": zod.number().int()
 })
 
 
@@ -552,6 +571,45 @@ export const CreateReviewResponse = zod.object({
   "rating": zod.number().int(),
   "comment": zod.string(),
   "createdAt": zod.string()
+})
+
+
+export const GetRewardsResponse = zod.object({
+  "balance": zod.number().int(),
+  "pointsToNextReward": zod.number().int(),
+  "coupons": zod.array(zod.object({
+  "id": zod.number().int(),
+  "code": zod.string(),
+  "discountPercent": zod.number().int(),
+  "createdAt": zod.string(),
+  "expiresAt": zod.string(),
+  "status": zod.enum(['available', 'used', 'expired']),
+  "redeemedOrderId": zod.number().int().nullable()
+})),
+  "history": zod.array(zod.object({
+  "id": zod.number().int(),
+  "type": zod.enum(['earned', 'redeemed']),
+  "reason": zod.enum(['order_completed', 'review_submitted', 'reward_redeemed']),
+  "points": zod.number().int(),
+  "orderId": zod.number().int().nullable(),
+  "couponCode": zod.string().nullable(),
+  "createdAt": zod.string()
+}))
+})
+
+
+export const RedeemRewardBody = zod.object({
+
+})
+
+export const RedeemRewardResponse = zod.object({
+  "id": zod.number().int(),
+  "code": zod.string(),
+  "discountPercent": zod.number().int(),
+  "createdAt": zod.string(),
+  "expiresAt": zod.string(),
+  "status": zod.enum(['available', 'used', 'expired']),
+  "redeemedOrderId": zod.number().int().nullable()
 })
 
 
@@ -624,13 +682,17 @@ export const GetDashboardResponse = zod.object({
   "description": zod.string(),
   "scheduledAt": zod.string(),
   "location": zod.string(),
+  "originalPrice": zod.number(),
+  "discount": zod.number(),
+  "couponCode": zod.string().nullable(),
   "price": zod.number(),
   "commission": zod.number(),
   "total": zod.number(),
   "status": zod.enum(['new', 'accepted', 'in_progress', 'completed', 'cancelled']),
   "createdAt": zod.string(),
   "reviewed": zod.boolean(),
-  "isDemo": zod.boolean()
+  "isDemo": zod.boolean(),
+  "pointsEarned": zod.number().int()
 })),
   "subscription": zod.union([zod.object({
   "id": zod.number().int(),
@@ -641,7 +703,8 @@ export const GetDashboardResponse = zod.object({
   "startsAt": zod.string(),
   "endsAt": zod.string(),
   "simulated": zod.boolean()
-}),zod.null()])
+}),zod.null()]),
+  "pointsBalance": zod.number().int()
 })
 
 

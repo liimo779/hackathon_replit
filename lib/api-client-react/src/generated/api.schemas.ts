@@ -245,6 +245,10 @@ export interface Order {
   description: string;
   scheduledAt: string;
   location: string;
+  originalPrice: number;
+  discount: number;
+  /** @nullable */
+  couponCode: string | null;
   price: number;
   commission: number;
   total: number;
@@ -252,6 +256,7 @@ export interface Order {
   createdAt: string;
   reviewed: boolean;
   isDemo: boolean;
+  pointsEarned: number;
 }
 
 export interface OrderInput {
@@ -265,6 +270,11 @@ export interface OrderInput {
   scheduledAt?: string;
   /** @maxLength 500 */
   location: string;
+  /**
+     * @minLength 1
+     * @maxLength 40
+     */
+  couponCode?: string;
 }
 
 export type OrderStatusInputStatus = typeof OrderStatusInputStatus[keyof typeof OrderStatusInputStatus];
@@ -293,6 +303,64 @@ export interface ReviewInput {
      */
   comment: string;
 }
+
+export type RewardCouponStatus = typeof RewardCouponStatus[keyof typeof RewardCouponStatus];
+
+
+export const RewardCouponStatus = {
+  available: 'available',
+  used: 'used',
+  expired: 'expired',
+} as const;
+
+export interface RewardCoupon {
+  id: number;
+  code: string;
+  discountPercent: number;
+  createdAt: string;
+  expiresAt: string;
+  status: RewardCouponStatus;
+  /** @nullable */
+  redeemedOrderId: number | null;
+}
+
+export type PointsTransactionType = typeof PointsTransactionType[keyof typeof PointsTransactionType];
+
+
+export const PointsTransactionType = {
+  earned: 'earned',
+  redeemed: 'redeemed',
+} as const;
+
+export type PointsTransactionReason = typeof PointsTransactionReason[keyof typeof PointsTransactionReason];
+
+
+export const PointsTransactionReason = {
+  order_completed: 'order_completed',
+  review_submitted: 'review_submitted',
+  reward_redeemed: 'reward_redeemed',
+} as const;
+
+export interface PointsTransaction {
+  id: number;
+  type: PointsTransactionType;
+  reason: PointsTransactionReason;
+  points: number;
+  /** @nullable */
+  orderId: number | null;
+  /** @nullable */
+  couponCode: string | null;
+  createdAt: string;
+}
+
+export interface Rewards {
+  balance: number;
+  pointsToNextReward: number;
+  coupons: RewardCoupon[];
+  history: PointsTransaction[];
+}
+
+export interface RewardRedemptionInput { [key: string]: unknown }
 
 export type PlanId = typeof PlanId[keyof typeof PlanId];
 
@@ -364,6 +432,7 @@ export interface Dashboard {
   categoryDistribution: CategoryCount[];
   recentOrders: Order[];
   subscription: Subscription | null;
+  pointsBalance: number;
 }
 
 export interface MarketplaceStats {

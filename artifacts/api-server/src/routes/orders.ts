@@ -3,6 +3,7 @@ import { db, users, services, orders, reviews, commissions, payments } from "@wo
 import { eq, and } from "drizzle-orm";
 import * as V from "@workspace/api-zod";
 import { assert, snapshot, currentSubscription } from "../lib/marketplace";
+import { awardPoints, calculateOrderAmounts, consumeRewardCoupon, lockRewardCoupon, POINTS_FOR_COMPLETION, POINTS_FOR_REVIEW } from "../lib/rewards";
 import { requireAccount, requireRole, account } from "../middlewares/account";
 
 const router: IRouter = Router();
@@ -24,11 +25,20 @@ router.post("/orders", requireRole("customer"), async (req, res): Promise<void> 
     assert(provider?.active, 400, "مقدم الخدمة غير متاح");
     assert(await currentSubscription(service.providerId), 400, "اشتراك مقدم الخدمة منتهٍ، لا يمكن استقبال طلبات جديدة");
     assert(service.delivery === "remote" || input.location.trim().length >= 3, 400, "يرجى إدخال موقع تقديم الخدمة");
-    const commission = Math.round(service.priceHalalas / 10);
+    let coupon: Awaited<ReturnType<typeof lockRewardCoupon>> | undefined;
+    let normalizedCode: string | null = null;
+    if (input.couponCode) {
+      coupon = await lockRewardCoupon(tx, u.id, input.couponCode);
+      normalizedCode = coupon.code;
+    }
+    const amounts = calculateOrderAmounts(service.priceHalalas, coupon?.discountPercent ?? 0);
     const [row] = await tx.insert(orders).values({ serviceId: service.id, serviceTitle: service.title, customerId: u.id,
       providerId: service.providerId, description: input.description, scheduledAt: input.scheduledAt ?? "", location: input.location,
-      priceHalalas: service.priceHalalas, commissionHalalas: commission, totalHalalas: service.priceHalalas + commission }).returning();
-    await tx.insert(commissions).values({ orderId: row!.id, amountHalalas: commission });
+      ...amounts, couponCode: normalizedCode }).returning();
+    if (coupon) {
+      await consumeRewardCoupon(tx, coupon.id, row!.id);
+    }
+    await tx.insert(commissions).values({ orderId: row!.id, amountHalalas: amounts.commissionHalalas });
     await tx.insert(payments).values({ userId: u.id, orderId: row!.id, amountHalalas: row!.totalHalalas });
     return row!;
   });
@@ -56,6 +66,7 @@ router.patch("/orders/:id", async (req, res): Promise<void> => {
     if (status === "completed" || status === "cancelled") {
       await tx.update(commissions).set({ status: status === "completed" ? "earned" : "cancelled" }).where(eq(commissions.orderId, id));
       if (status === "cancelled") await tx.update(payments).set({ status: "simulated_refunded" }).where(eq(payments.orderId, id));
+      if (status === "completed") await awardPoints(tx, o.customerId, id, "order_completed", POINTS_FOR_COMPLETION);
     }
     return row!;
   });
@@ -69,6 +80,7 @@ router.post("/orders/:id/review", requireRole("customer"), async (req, res): Pro
     const [exists] = await tx.select().from(reviews).where(eq(reviews.orderId, id));
     assert(!exists, 409, "تم تقييم هذا الطلب مسبقًا");
     const [r] = await tx.insert(reviews).values({ orderId: id, customerId: u.id, providerId: o.providerId, ...input }).returning();
+    await awardPoints(tx, u.id, id, "review_submitted", POINTS_FOR_REVIEW);
     return r!;
   });
   res.status(201).json(V.CreateReviewResponse.parse((await snapshot()).reviewView(row)));

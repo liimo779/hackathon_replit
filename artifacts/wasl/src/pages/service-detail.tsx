@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { MapPin, Clock, Truck, ArrowRight, Receipt, CheckCircle2 } from "lucide-react";
 import {
   useGetService, getGetServiceQueryKey, useCreateOrder, useListCategories, getListOrdersQueryKey, getGetDashboardQueryKey,
+  useGetRewards, getGetRewardsQueryKey, type RewardCoupon,
 } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -110,24 +111,34 @@ function OrderPanel({ serviceId, price, isDemo, remote }: { serviceId: number; p
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const create = useCreateOrder();
+  const rewards = useGetRewards({ query: { enabled: user?.role === "customer" } });
   const [description, setDescription] = useState("");
   const [location, setLoc] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
+  const [couponCode, setCouponCode] = useState("");
   const [confirm, setConfirm] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const fee = Math.round(Math.round(price * 100) / 10) / 100;
-  const total = Math.round((price + fee) * 100) / 100;
+  const availableCoupons = (rewards.data?.coupons ?? []).filter((coupon) => coupon.status === "available");
+  const appliedCoupon = availableCoupons.find((coupon) => coupon.code.toUpperCase() === couponCode.trim().toUpperCase());
+  const originalPriceHalalas = Math.round(price * 100);
+  const discountHalalas = appliedCoupon ? Math.round(originalPriceHalalas * appliedCoupon.discountPercent / 100) : 0;
+  const discountedPriceHalalas = originalPriceHalalas - discountHalalas;
+  const feeHalalas = Math.round(discountedPriceHalalas / 10);
+  const totalHalalas = discountedPriceHalalas + feeHalalas;
+  const fee = feeHalalas / 100;
+  const total = totalHalalas / 100;
   const valid = description.trim().length >= 5 && (remote || location.trim().length >= 3);
 
   const submit = () => {
     setErr(null);
     create.mutate(
-      { data: { serviceId, description: description.trim(), location: location.trim(), scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined } },
+      { data: { serviceId, description: description.trim(), location: location.trim(), scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined, couponCode: couponCode.trim() || undefined } },
       {
         onSuccess: (o) => {
           qc.invalidateQueries({ queryKey: getListOrdersQueryKey() });
           qc.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
+          qc.invalidateQueries({ queryKey: getGetRewardsQueryKey() });
           toast({ title: "تم إرسال طلبك", description: `الإجمالي ${sar(o.total)} — بانتظار قبول مقدم الخدمة.` });
           setLocation(`/orders/${o.id}`);
         },
@@ -138,7 +149,11 @@ function OrderPanel({ serviceId, price, isDemo, remote }: { serviceId: number; p
 
   const breakdown = (
     <div className="space-y-2 rounded-xl bg-muted/60 p-4 text-sm">
-      <div className="flex justify-between"><span className="text-muted-foreground">سعر الخدمة</span><span className="num">{sar(price)}</span></div>
+      <div className="flex justify-between"><span className="text-muted-foreground">{appliedCoupon ? "السعر قبل الخصم" : "سعر الخدمة"}</span><span className="num">{sar(originalPriceHalalas / 100)}</span></div>
+      {appliedCoupon && <>
+        <div className="flex justify-between text-success"><span>خصم القسيمة ({appliedCoupon.discountPercent}٪)</span><span className="num">−{sar(discountHalalas / 100)}</span></div>
+        <div className="flex justify-between"><span className="text-muted-foreground">السعر بعد الخصم</span><span className="num">{sar(discountedPriceHalalas / 100)}</span></div>
+      </>}
       <div className="flex justify-between"><span className="text-muted-foreground">رسوم المنصة (10%)</span><span className="num">{sar(fee)}</span></div>
       <div className="flex justify-between border-t border-dashed pt-2 text-base font-bold"><span>الإجمالي</span><span className="num text-primary" data-testid="text-order-total">{sar(total)}</span></div>
     </div>
@@ -178,6 +193,7 @@ function OrderPanel({ serviceId, price, isDemo, remote }: { serviceId: number; p
               <Label htmlFor="when">الموعد المفضل (اختياري)</Label>
               <Input id="when" type="datetime-local" data-testid="input-order-schedule" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
             </div>
+            <CouponPicker coupons={availableCoupons} value={couponCode} onChange={setCouponCode} />
             {breakdown}
             <p className="rounded-lg bg-accent p-3 text-xs text-accent-foreground">الدفع تجريبي بالكامل. لا يُخصم أي مبلغ حقيقي ولا تُطلب بيانات بطاقة.</p>
             <p className="text-[11px] text-muted-foreground">يحتسب الخادم المبلغ النهائي عند الإرسال.</p>
@@ -203,6 +219,25 @@ function OrderPanel({ serviceId, price, isDemo, remote }: { serviceId: number; p
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+function CouponPicker({ coupons, value, onChange }: { coupons: RewardCoupon[]; value: string; onChange: (code: string) => void }) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor="coupon-code">كود الخصم (اختياري)</Label>
+      <Input id="coupon-code" data-testid="input-reward-coupon" value={value} onChange={(event) => onChange(event.target.value)} placeholder="أدخل كود القسيمة" autoCapitalize="characters" />
+      {coupons.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {coupons.map((coupon) => (
+            <button key={coupon.id} type="button" aria-pressed={value.toUpperCase() === coupon.code.toUpperCase()} onClick={() => onChange(value.toUpperCase() === coupon.code.toUpperCase() ? "" : coupon.code)} className={`rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors ${value.toUpperCase() === coupon.code.toUpperCase() ? "border-primary bg-primary/10 text-primary" : "bg-background text-muted-foreground hover:border-primary/50"}`} data-testid={`button-use-coupon-${coupon.id}`}>
+              {coupon.code} · {coupon.discountPercent}٪
+            </button>
+          ))}
+        </div>
+      )}
+      {value && <p className="text-xs text-muted-foreground">تُستهلك القسيمة عند إرسال الطلب ولا تعود إذا أُلغي.</p>}
     </div>
   );
 }
