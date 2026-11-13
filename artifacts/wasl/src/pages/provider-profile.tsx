@@ -118,7 +118,7 @@ function Inner({ user }: { user: User }) {
           {avatar && <Button variant="ghost" size="sm" className="mt-2" onClick={() => setAvatar("")}>إزالة الصورة</Button>}
         </div>
         <div className="space-y-6 rounded-2xl border bg-card p-6">
-          <div className="space-y-1.5"><Label>نبذة عنك</Label><Textarea data-testid="input-bio" rows={5} maxLength={3000} value={bio} onChange={(e) => setBio(e.target.value)} placeholder="من أنت؟ ماذا تتقن؟ لماذا يثق بك جيرانك؟" /></div>
+          <div className="space-y-1.5"><Label>نبذة عنك</Label><Textarea data-testid="input-bio" rows={5} maxLength={3000} value={bio} onChange={(e) => setBio(e.target.value)} placeholder="من أنت؟ ماذا تتقن؟" /></div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5"><Label>القسم الرئيسي</Label>
               <Select value={categoryId} onValueChange={setCategoryId}>

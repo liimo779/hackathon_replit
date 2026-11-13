@@ -140,7 +140,7 @@ export default function Landing() {
             {[
               { icon: Search, t: "اختر", d: "ابحث بالاسم أو القسم أو الحي، وقارن الأسعار والتقييمات." },
               { icon: HandCoins, t: "اطلب", d: "اكتب تفاصيل حاجتك وموعدك، وراجع الإجمالي قبل التأكيد." },
-              { icon: MessageSquareText, t: "قيّم", d: "بعد اكتمال الطلب، شارك تجربتك لتساعد جيرانك." },
+              { icon: MessageSquareText, t: "قيّم", d: "بعد اكتمال الطلب، شارك تجربتك ." },
             ].map((s, i) => (
               <li key={s.t} className="rounded-2xl bg-sidebar-accent p-5">
                 <div className="flex items-center justify-between">
