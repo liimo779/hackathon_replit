@@ -76,12 +76,11 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
       {/* CATEGORIES */}
       <section className="mx-auto max-w-7xl px-4 pt-20 md:px-6">
         <div className="mb-8 flex items-end justify-between">
           <div>
-            <div className="text-xs font-bold text-clay">الأقسام</div>
+            <div className="font-bold text-clay text-[40px]">الأقسام</div>
           </div>
         </div>
         {cats.isLoading ? (
@@ -110,7 +109,6 @@ export default function Landing() {
           </div>
         )}
       </section>
-
       {/* SERVICES */}
       <section className="mx-auto max-w-7xl px-4 pt-20 md:px-6">
         <div className="mb-8 flex items-end justify-between">
@@ -130,7 +128,6 @@ export default function Landing() {
           </div>
         )}
       </section>
-
       {/* HOW */}
       <section id="how" className="mx-auto mt-24 max-w-7xl scroll-mt-20 px-4 md:px-6">
         <div className="grid gap-10 rounded-[2rem] bg-sidebar p-8 text-sidebar-foreground md:p-14 lg:grid-cols-[1fr_1.4fr]">
@@ -157,7 +154,6 @@ export default function Landing() {
           </ol>
         </div>
       </section>
-
       {/* PROVIDERS */}
       <section className="mx-auto max-w-7xl px-4 pt-20 md:px-6">
         <div className="mb-8">
@@ -193,7 +189,6 @@ export default function Landing() {
           </div>
         )}
       </section>
-
       {/* FOR PROVIDERS */}
       <section id="providers" className="mx-auto mt-24 max-w-7xl scroll-mt-20 px-4 md:px-6">
         <div className="grid items-center gap-10 lg:grid-cols-2">
@@ -214,7 +209,6 @@ export default function Landing() {
           </div>
         </div>
       </section>
-
       {/* TRUST */}
       <section className="mx-auto mt-24 max-w-4xl px-4 text-center md:px-6">
         <ShieldCheck className="mx-auto h-10 w-10 text-primary" />
