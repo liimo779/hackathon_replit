@@ -66,7 +66,7 @@ export function PublicFooter() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 md:grid-cols-4 md:px-6">
         <div className="md:col-span-2">
           <Logo light size="lg" />
-          <p className="mt-4 max-w-sm text-sm leading-relaxed text-sidebar-foreground/70">اطلب خدمتك، واعرض مهارتك. سوق محلي يصل أهل الحي بأصحاب المهارات المستقلين في مدن المملكة.</p>
+          <p className="mt-4 max-w-sm text-sm leading-relaxed text-sidebar-foreground/70">اطلب خدمتك، واعرض مهارتك. سوق محلي يصل  بأصحاب المهارات المستقلين في مدن المملكة.</p>
         </div>
         <div>
           <div className="mb-3 font-bold">المنصة</div>
