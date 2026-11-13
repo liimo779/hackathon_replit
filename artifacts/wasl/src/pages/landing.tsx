@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Search, ArrowLeft, ShieldCheck, HandCoins, MessageSquareText, CheckCircle2, Sparkles } from "lucide-react";
+import { Search, ArrowLeft, ShieldCheck, HandCoins, MessageSquareText, CheckCircle2 } from "lucide-react";
 import { useGetMarketplaceStats, useListCategories, useListServices, useListProviders } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,9 +29,6 @@ export default function Landing() {
         <div className="najdi-pattern absolute inset-0 opacity-60" />
         <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 pb-16 pt-12 md:px-6 lg:grid-cols-[1.1fr_1fr] lg:pt-20">
           <div>
-            <div className="rise inline-flex items-center gap-2 rounded-full border border-saffron/40 bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
-              <Sparkles className="h-3.5 w-3.5" /> سوق الحي للمهارات المستقلة
-            </div>
             <h1 className="rise rise-1 mt-6 font-display text-5xl font-black leading-[1.15] md:text-7xl">
               اطلب خدمتك،
               <br />
