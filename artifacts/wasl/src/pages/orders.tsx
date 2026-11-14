@@ -22,7 +22,7 @@ function Inner() {
   });
   const [tab, setTab] = useState<OrderStatus | "all">("all");
   const list = (q.data ?? []).filter((o) => tab === "all" || o.status === tab);
-  const tabs: Array<OrderStatus | "all"> = ["all", "new", "accepted", "in_progress", "completed", "cancelled"];
+  const tabs: Array<OrderStatus | "all"> = ["all", "new", "accepted", "in_progress", "delivered", "completed", "cancelled"];
   return (
     <>
       <PageHeader eyebrow="الطلبات" title="طلباتك" subtitle="تتحدث الحالة تلقائيًا كل عشرين ثانية لفترة محدودة." />

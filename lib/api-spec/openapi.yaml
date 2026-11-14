@@ -492,7 +492,7 @@ components:
         price: { type: number }
         commission: { type: number }
         total: { type: number }
-        status: { type: string, enum: [new, accepted, in_progress, completed, cancelled] }
+        status: { type: string, enum: [new, accepted, in_progress, delivered, completed, cancelled] }
         createdAt: { type: string }
         reviewed: { type: boolean }
         isDemo: { type: boolean }
@@ -510,7 +510,7 @@ components:
       type: object
       required: [status]
       properties:
-        status: { type: string, enum: [accepted, in_progress, completed, cancelled] }
+        status: { type: string, enum: [accepted, in_progress, delivered, completed, cancelled] }
     Review:
       type: object
       required: [id, orderId, customerName, rating, comment, createdAt]

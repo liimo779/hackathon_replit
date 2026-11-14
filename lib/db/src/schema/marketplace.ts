@@ -69,7 +69,7 @@ export const orders = pgTable("wasl_orders", {
   couponCode: text("coupon_code"),
   commissionHalalas: integer("commission_halalas").notNull(),
   totalHalalas: integer("total_halalas").notNull(),
-  status: text("status", { enum: ["new", "accepted", "in_progress", "completed", "cancelled"] }).notNull().default("new"),
+  status: text("status", { enum: ["new", "accepted", "in_progress", "delivered", "completed", "cancelled"] }).notNull().default("new"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [
   check("order_total_consistent", sql`${t.totalHalalas} = ${t.priceHalalas} + ${t.commissionHalalas}`),

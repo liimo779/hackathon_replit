@@ -20,7 +20,7 @@ export default function OrderDetail() {
   return <AppShell><RequireUser>{(u) => <Inner user={u} />}</RequireUser></AppShell>;
 }
 
-const flow: Order["status"][] = ["new", "accepted", "in_progress", "completed"];
+const flow: Order["status"][] = ["new", "accepted", "in_progress", "delivered", "completed"];
 
 function Inner({ user }: { user: User }) {
   const { id: raw } = useParams();
@@ -44,7 +44,7 @@ function Inner({ user }: { user: User }) {
       <div className="mt-1 text-sm text-muted-foreground">طلب #{o.id} · {date(o.createdAt)}</div>
 
       {o.status !== "cancelled" ? (
-        <ol className="mt-8 grid grid-cols-4 gap-2">
+        <ol className="mt-8 grid grid-cols-5 gap-2">
           {flow.map((s, i) => (
             <li key={s} className="text-center">
               <div className={cn("h-1.5 rounded-full transition-colors", i <= stepIdx ? "bg-primary" : "bg-muted")} />
@@ -53,6 +53,11 @@ function Inner({ user }: { user: User }) {
           ))}
         </ol>
       ) : <div className="mt-6 rounded-xl bg-muted p-4 text-sm text-muted-foreground">تم إلغاء هذا الطلب.</div>}
+      {user.role === "customer" && o.customerId === user.id && o.status === "delivered" && (
+        <div role="status" className="mt-6 rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm text-primary">
+          أكد مقدم الخدمة تقديم الخدمة. بعد مراجعتها، أكد إتمامها لفتح التقييم والحصول على ١٠ نقاط.
+        </div>
+      )}
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <div className="space-y-4 rounded-2xl border bg-card p-6">
@@ -102,9 +107,10 @@ function Actions({ o, user }: { o: Order; user: User }) {
   if (isProvider) {
     if (o.status === "new") actions.push({ s: "accepted", l: "قبول الطلب" }, { s: "cancelled", l: "رفض الطلب", danger: true });
     if (o.status === "accepted") actions.push({ s: "in_progress", l: "بدء التنفيذ" });
-    if (o.status === "in_progress") actions.push({ s: "completed", l: "تأكيد الاكتمال" });
+    if (o.status === "in_progress") actions.push({ s: "delivered", l: "تأكيد تقديم الخدمة" });
   }
   if (isCustomer && (o.status === "new" || o.status === "accepted")) actions.push({ s: "cancelled", l: "إلغاء الطلب", danger: true });
+  if (isCustomer && o.status === "delivered") actions.push({ s: "completed", l: "تأكيد إتمام الخدمة" });
   if (!actions.length) return null;
 
   const run = () => {
@@ -115,9 +121,14 @@ function Actions({ o, user }: { o: Order; user: User }) {
         qc.setQueryData(getGetOrderQueryKey(o.id), upd);
         qc.invalidateQueries({ queryKey: getListOrdersQueryKey() });
         qc.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
+          if (pending === "completed") qc.invalidateQueries({ queryKey: getGetRewardsQueryKey() });
         toast({
-          title: "تم تحديث الحالة",
-          description: pending === "completed" ? "اكتمل الطلب، وحصل العميل على ١٠ نقاط." : statusLabel[upd.status],
+            title: "تم تحديث الحالة",
+            description: pending === "delivered"
+              ? "أصبح الطلب بانتظار تأكيد العميل لإتمام الخدمة ثم تقييمها."
+              : pending === "completed"
+                ? "أكدت إتمام الخدمة، وحصلت على ١٠ نقاط. يمكنك الآن تقييمها."
+                : statusLabel[upd.status],
         });
         setPending(null);
       },
@@ -139,7 +150,15 @@ function Actions({ o, user }: { o: Order; user: User }) {
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <AlertDialogTitle>{label}؟</AlertDialogTitle>
-            <AlertDialogDescription>{pending === "cancelled" ? "لا يمكن التراجع عن هذا الإجراء." : `ستنتقل حالة الطلب إلى «${pending ? statusLabel[pending] : ""}».`}</AlertDialogDescription>
+            <AlertDialogDescription>
+              {pending === "cancelled"
+                ? "لا يمكن التراجع عن هذا الإجراء."
+                : pending === "completed"
+                  ? "بعد تأكيد الإتمام، يمكنك تقييم الخدمة وستحصل على ١٠ نقاط."
+                  : pending === "delivered"
+                    ? "سيُطلب من العميل تأكيد إتمام الخدمة قبل احتساب الطلب مكتملًا."
+                    : `ستنتقل حالة الطلب إلى «${pending ? statusLabel[pending] : ""}».`}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
             <AlertDialogCancel>تراجع</AlertDialogCancel>

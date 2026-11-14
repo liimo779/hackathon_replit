@@ -56,10 +56,14 @@ router.patch("/orders/:id", async (req, res): Promise<void> => {
     const [o] = await tx.select().from(orders).where(eq(orders.id, id)).for("update");
     assert(o && (o.providerId === u.id || o.customerId === u.id), 404, "الطلب غير موجود");
     if (u.role === "customer") {
-      assert(status === "cancelled" && ["new", "accepted"].includes(o.status), 400, "يمكن إلغاء الطلبات الجديدة أو المقبولة فقط");
+      if (status === "completed") {
+        assert(o.customerId === u.id && o.status === "delivered", 400, "يمكن تأكيد إتمام الخدمة بعد تأكيد مقدم الخدمة تقديمها فقط");
+      } else {
+        assert(status === "cancelled" && ["new", "accepted"].includes(o.status), 400, "يمكن إلغاء الطلبات الجديدة أو المقبولة فقط");
+      }
     } else {
       assert(u.role === "provider" && o.providerId === u.id, 403, "غير مصرح");
-      const allowed: Record<string, string[]> = { new: ["accepted", "cancelled"], accepted: ["in_progress", "cancelled"], in_progress: ["completed"], completed: [], cancelled: [] };
+      const allowed: Record<string, string[]> = { new: ["accepted", "cancelled"], accepted: ["in_progress", "cancelled"], in_progress: ["delivered"], delivered: [], completed: [], cancelled: [] };
       assert(allowed[o.status]?.includes(status), 400, "لا يمكن تغيير حالة الطلب بهذا التسلسل");
     }
     const [row] = await tx.update(orders).set({ status }).where(eq(orders.id, id)).returning();

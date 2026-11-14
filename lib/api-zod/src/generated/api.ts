@@ -433,7 +433,7 @@ export const ListOrdersResponseItem = zod.object({
   "price": zod.number(),
   "commission": zod.number(),
   "total": zod.number(),
-  "status": zod.enum(['new', 'accepted', 'in_progress', 'completed', 'cancelled']),
+  "status": zod.enum(['new', 'accepted', 'in_progress', 'delivered', 'completed', 'cancelled']),
   "createdAt": zod.string(),
   "reviewed": zod.boolean(),
   "isDemo": zod.boolean(),
@@ -478,7 +478,7 @@ export const CreateOrderResponse = zod.object({
   "price": zod.number(),
   "commission": zod.number(),
   "total": zod.number(),
-  "status": zod.enum(['new', 'accepted', 'in_progress', 'completed', 'cancelled']),
+  "status": zod.enum(['new', 'accepted', 'in_progress', 'delivered', 'completed', 'cancelled']),
   "createdAt": zod.string(),
   "reviewed": zod.boolean(),
   "isDemo": zod.boolean(),
@@ -507,7 +507,7 @@ export const GetOrderResponse = zod.object({
   "price": zod.number(),
   "commission": zod.number(),
   "total": zod.number(),
-  "status": zod.enum(['new', 'accepted', 'in_progress', 'completed', 'cancelled']),
+  "status": zod.enum(['new', 'accepted', 'in_progress', 'delivered', 'completed', 'cancelled']),
   "createdAt": zod.string(),
   "reviewed": zod.boolean(),
   "isDemo": zod.boolean(),
@@ -520,7 +520,7 @@ export const UpdateOrderStatusParams = zod.object({
 })
 
 export const UpdateOrderStatusBody = zod.object({
-  "status": zod.enum(['accepted', 'in_progress', 'completed', 'cancelled'])
+  "status": zod.enum(['accepted', 'in_progress', 'delivered', 'completed', 'cancelled'])
 })
 
 export const UpdateOrderStatusResponse = zod.object({
@@ -540,7 +540,7 @@ export const UpdateOrderStatusResponse = zod.object({
   "price": zod.number(),
   "commission": zod.number(),
   "total": zod.number(),
-  "status": zod.enum(['new', 'accepted', 'in_progress', 'completed', 'cancelled']),
+  "status": zod.enum(['new', 'accepted', 'in_progress', 'delivered', 'completed', 'cancelled']),
   "createdAt": zod.string(),
   "reviewed": zod.boolean(),
   "isDemo": zod.boolean(),
@@ -688,7 +688,7 @@ export const GetDashboardResponse = zod.object({
   "price": zod.number(),
   "commission": zod.number(),
   "total": zod.number(),
-  "status": zod.enum(['new', 'accepted', 'in_progress', 'completed', 'cancelled']),
+  "status": zod.enum(['new', 'accepted', 'in_progress', 'delivered', 'completed', 'cancelled']),
   "createdAt": zod.string(),
   "reviewed": zod.boolean(),
   "isDemo": zod.boolean(),

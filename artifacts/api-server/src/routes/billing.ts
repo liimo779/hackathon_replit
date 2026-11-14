@@ -43,7 +43,7 @@ router.get("/dashboard", requireAccount, async (_req, res): Promise<void> => {
   const myServices = u.role === "admin" ? s.published : s.allServices.filter(r => r.providerId === u.id && !r.archived);
   res.json(V.GetDashboardResponse.parse({
     role: u.role, serviceCount: myServices.length, newOrders: os.filter(o => o.status === "new").length,
-    inProgressOrders: os.filter(o => ["accepted", "in_progress"].includes(o.status)).length,
+    inProgressOrders: os.filter(o => ["accepted", "in_progress", "delivered"].includes(o.status)).length,
     completedOrders: completed.length, views: s.allProfiles.find(p => p.userId === u.id)?.views ?? 0,
     rating: s.ratings(u.id).rating, totalOrders: os.length,
     totalValue: completed.reduce((sum, o) => sum + o.totalHalalas, 0) / 100,

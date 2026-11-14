@@ -12,6 +12,7 @@ export type OrderStatusInputStatus = typeof OrderStatusInputStatus[keyof typeof 
 export const OrderStatusInputStatus = {
   accepted: 'accepted',
   in_progress: 'in_progress',
+  delivered: 'delivered',
   completed: 'completed',
   cancelled: 'cancelled',
 } as const;

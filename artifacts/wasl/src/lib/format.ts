@@ -22,6 +22,7 @@ export const statusLabel: Record<OrderStatus, string> = {
   new: "جديد",
   accepted: "مقبول",
   in_progress: "قيد التنفيذ",
+  delivered: "بانتظار تأكيد العميل",
   completed: "مكتمل",
   cancelled: "ملغي",
 };
@@ -30,6 +31,7 @@ export const statusTone: Record<OrderStatus, string> = {
   new: "bg-accent text-accent-foreground border-saffron/30",
   accepted: "bg-primary/10 text-primary border-primary/20",
   in_progress: "bg-chart-5/15 text-foreground border-chart-5/30",
+  delivered: "bg-clay/10 text-clay border-clay/30",
   completed: "bg-success/12 text-success border-success/30",
   cancelled: "bg-muted text-muted-foreground border-border",
 };
